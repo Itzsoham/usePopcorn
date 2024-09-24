@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const tempMovieData = [
   {
@@ -47,36 +47,22 @@ const tempWatchedData = [
   },
 ];
 
-const KEY = "7f9a3575";
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const query = "Batman";
-
-  useEffect(function () {
-    setIsLoading(true);
-    async function FetchMovies() {
-      const res = await fetch(
-        `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
-      );
-      const data = await res.json();
-      setMovies(data.Search);
-      setIsLoading(false);
-    }
-    FetchMovies();
-  }, []);
+  const [movies, setMovies] = useState(tempMovieData);
+  const [watched, setWatched] = useState(tempWatchedData);
 
   return (
     <>
       <NavBar movies={movies} />
       <Main>
-        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
         <Box>
+          <MovieList movies={movies} />
+        </Box>
+        <Box>
+          {" "}
           <WatchedSummery watched={watched} />
           <WatchedMovieList watched={watched} />
         </Box>
@@ -142,9 +128,7 @@ function Box({ children }) {
     </div>
   );
 }
-function Loader() {
-  return <p className="loader">Loading ...</p>;
-}
+
 function MovieList({ movies }) {
   return (
     <ul className="list">
