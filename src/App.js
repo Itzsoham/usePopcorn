@@ -56,17 +56,30 @@ export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const query = "Batman";
+  const [error, setError] = useState("");
+  const query = "batman ";
 
   useEffect(function () {
-    setIsLoading(true);
     async function FetchMovies() {
-      const res = await fetch(
-        `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
-      );
-      const data = await res.json();
-      setMovies(data.Search);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+        );
+
+        if (!res.ok)
+          throw new Error("Something went wrong with fatching movie");
+
+        const data = await res.json();
+        if (data.Response === "False") throw new Error("Movie Not Found");
+        setMovies(data.Search);
+        console.log(data);
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
     FetchMovies();
   }, []);
@@ -75,7 +88,12 @@ export default function App() {
     <>
       <NavBar movies={movies} />
       <Main>
-        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
+        <Box>
+          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
+          {isLoading && <Loader />}
+          {error && <ErrorMessage message={error} />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+        </Box>
         <Box>
           <WatchedSummery watched={watched} />
           <WatchedMovieList watched={watched} />
@@ -84,7 +102,17 @@ export default function App() {
     </>
   );
 }
-
+function Loader() {
+  return <p className="loader">Loading ...</p>;
+}
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span>
+      {message}
+    </p>
+  );
+}
 function NavBar({ movies }) {
   return (
     <nav className="nav-bar">
@@ -142,9 +170,7 @@ function Box({ children }) {
     </div>
   );
 }
-function Loader() {
-  return <p className="loader">Loading ...</p>;
-}
+
 function MovieList({ movies }) {
   return (
     <ul className="list">
